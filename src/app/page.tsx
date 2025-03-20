@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import DutchieEmbed from "@/components/DutchieEmbed";
 
 export default function Home() {
