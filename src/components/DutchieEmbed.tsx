@@ -1,36 +1,40 @@
+/* components/DutchieEmbed.tsx */
 "use client";
+import { useEffect } from "react";
 
-import { useEffect, useState } from "react";
-
-// Single Dutchie Script URL
-const scriptSrc = "https://dutchie.com/api/v2/embedded-menu/6418c162f9c0130184998ad5.js?chainLocations=true";
-
-const DutchieEmbed = () => {
-  const [scriptLoaded, setScriptLoaded] = useState(false);
+export default function DutchieEmbed({ scriptSrc }: { scriptSrc: string }) {
+  const CONTAINER_ID = "dutchie--embed__container";
+  const SCRIPT_ID = "dutchie--embed__script";
 
   useEffect(() => {
-    const loadScript = () => {
-      if (!document.getElementById("dutchie--embed__script")) {
-        const script = document.createElement("script");
-        script.src = scriptSrc;
-        script.async = true;
-        script.id = "dutchie--embed__script";
-        document.body.appendChild(script);
-        setScriptLoaded(true);
-      }
+    // ① remove any stray Dutchie menu roots left in <body>
+    document
+      .querySelectorAll('[data-dutchie-embedded-menu]')
+      .forEach((n) => n.parentNode?.removeChild(n));
+
+    // ② remove the previous <script>
+    document.getElementById(SCRIPT_ID)?.remove();
+
+    // ③ clear our container
+    const container = document.getElementById(CONTAINER_ID);
+    if (container) container.innerHTML = "";
+
+    // ④ inject the new script
+    const script = document.createElement("script");
+    script.id = SCRIPT_ID;
+    script.src = scriptSrc;
+    script.async = true;
+    container?.appendChild(script);
+
+    // ⑤ cleanup when unmounting
+    return () => {
+      script.remove();
+      container && (container.innerHTML = "");
+      document
+        .querySelectorAll('[data-dutchie-embedded-menu]')
+        .forEach((n) => n.parentNode?.removeChild(n));
     };
+  }, [scriptSrc]);
 
-    loadScript();
-  }, []);
-
-  return (
-    <div className="w-full flex flex-col items-center">
-      {/* Dutchie Store Menu (Automatically Handles Chain Locations) */}
-      
-
-      {!scriptLoaded && <p className="text-gray-500">Loading menu...</p>}
-    </div>
-  );
-};
-
-export default DutchieEmbed;
+  return <div id={CONTAINER_ID} className="w-full flex justify-center" />;
+}
